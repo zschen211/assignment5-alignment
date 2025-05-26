@@ -3,7 +3,7 @@ name = "alignment"
 version = "1.0.0"
 description = "CS 336 Spring 2025 Assignment 5: Alignment"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.11,<3.13"  # Python 3.13 not yet supported for some deps
 dependencies = [
     "accelerate>=1.5.2",
     "alpaca-eval",
@@ -20,7 +20,6 @@ dependencies = [
     "vllm==0.7.2",
     "wandb>=0.19.8",
     "xopen>=2.0.2",
-    "ty>=0.0.1a5",
 ]
 
 [tool.setuptools.packages.find]
