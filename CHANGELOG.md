@@ -19,6 +19,7 @@ All changes we make to the assignment code or PDF will be documented in this fil
 ### Changed
 
 ### Fixed
+- code: change masked normalize constant to not equal seqlen, more SFT test coverage
 
 ## [1.0.0] - 2025-05-23
 
