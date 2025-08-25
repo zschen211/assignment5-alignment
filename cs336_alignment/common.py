@@ -1,5 +1,8 @@
-import json
 import os
+os.environ["CUDA_LAUNCH_BLOCKING"] = "1"
+os.environ["TORCH_USE_CUDA_DSA"] = "1"
+
+import json
 import torch
 from pathlib import Path
 from typing import Callable, List, Tuple
@@ -223,36 +226,42 @@ def get_response_log_probs(
                 we have not masked out the token indices corresponding to the prompt
                 or padding; that is done in the train loop.
     """
+
     logits = model(input_ids).logits
-    log_probs = torch.log_softmax(logits, dim=2)
-    
+    probs = softmax(logits, dim=2)
+    unsqueezed_labels = labels.unsqueeze(-1)
+    selected_probs = probs.gather(dim=-1, index=unsqueezed_labels)
+
+    log_probs = torch.log(selected_probs).squeeze(-1)
+    result = {
+        "log_probs": log_probs,
+    }
+
     if return_token_entropy:
         entropy = compute_entropy(logits)
-        return {
-            "log_probs": log_probs[:, -1, :],
-            "token_entropy": entropy,
-        }
-    else:
-        return {
-            "log_probs": log_probs[:, -1, :],
-    }
+        result["token_entropy"] = entropy
+    
+    return result
 
 
 if __name__ == "__main__":
-    tokenization_result = tokenize_prompt_and_output(
-        ['Hello, world!', 'This is a test.', 'This is another test.'],
-        ['Hello, world!', 'This is a test.', 'This is another test.'],
-        AutoTokenizer.from_pretrained("Qwen/Qwen2.5-Math-1.5B"),
-    )
-    input_ids = tokenization_result["input_ids"]
-    labels = tokenization_result["labels"]
-    response_mask = tokenization_result["response_mask"]
+    input_ids = torch.tensor([[42, 67, 76, 14, 26, 35, 20, 24, 50, 13],
+        [78, 14, 10, 54, 31, 72, 15, 95, 67,  6]])
+    labels = torch.tensor([[67, 76, 14, 26, 35, 20, 24, 50, 13,  0],
+            [14, 10, 54, 31, 72, 15, 95, 67,  6,  0]])
     
+    device = torch.device("cuda")
     model = AutoModelForCausalLM.from_pretrained(
         "Qwen/Qwen2.5-Math-1.5B",
         torch_dtype=torch.bfloat16,
+        attn_implementation="flash_attention_2",
     )
-    logits = model(input_ids).logits
-    print(logits.shape)
+    model.to(device)
+    input_ids = input_ids.to(device)
+    labels = labels.to(device)
+
+    result = get_response_log_probs(model, input_ids, labels, return_token_entropy=True)
+    print(result["log_probs"])
+    print(result["token_entropy"])
     
     

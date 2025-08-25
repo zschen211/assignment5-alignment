@@ -33,6 +33,8 @@ def test_get_response_log_probs(
         labels=labels,
         return_token_entropy=True,
     )
+    print(input_ids)
+    print(labels)
     numpy_snapshot.assert_match(output)
 
 def test_masked_normalize_dim0(numpy_snapshot, tensor, mask, normalize_constant):
