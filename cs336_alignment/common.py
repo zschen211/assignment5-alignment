@@ -244,24 +244,69 @@ def get_response_log_probs(
     return result
 
 
-if __name__ == "__main__":
-    input_ids = torch.tensor([[42, 67, 76, 14, 26, 35, 20, 24, 50, 13],
-        [78, 14, 10, 54, 31, 72, 15, 95, 67,  6]])
-    labels = torch.tensor([[67, 76, 14, 26, 35, 20, 24, 50, 13,  0],
-            [14, 10, 54, 31, 72, 15, 95, 67,  6,  0]])
-    
-    device = torch.device("cuda")
-    model = AutoModelForCausalLM.from_pretrained(
-        "Qwen/Qwen2.5-Math-1.5B",
-        torch_dtype=torch.bfloat16,
-        attn_implementation="flash_attention_2",
-    )
-    model.to(device)
-    input_ids = input_ids.to(device)
-    labels = labels.to(device)
+def masked_normalize(
+    tensor: torch.Tensor,
+    mask: torch.Tensor,
+    dim: int | None = None,
+    normalize_constant: float = 1.0,
+) -> torch.Tensor:
+    """Sum over a dimension and normalize by a constant,
+    considering only the elements with mask value 1.
 
-    result = get_response_log_probs(model, input_ids, labels, return_token_entropy=True)
-    print(result["log_probs"])
-    print(result["token_entropy"])
+    Args:
+        tensor: torch.Tensor, the tensor to sum and normalize.
+        mask: torch.Tensor, the mask. We only consider elements
+            with mask value 1.
+        dim: int | None, the dimension to sum along before
+            normalization. If None, sum over all dimensions.
+        normalize_constant: float, the constant to divide by
+            for normalization.
+
+    Returns:
+        torch.Tensor, the normalized sum, where masked elements
+            (mask=0) don't contribute to the sum.
+    """
+    masked_tensor = tensor * mask.float()
+    tensor_sum = torch.sum(masked_tensor, dim=dim)
+    return tensor_sum / normalize_constant
+
+
+def sft_microbatch_train_step(
+    policy_log_probs: torch.Tensor,
+    response_mask: torch.Tensor,
+    gradient_accumulation_steps: int,
+    normalize_constant: int | None = 1.0,
+) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
+    """Compute the policy gradient loss and backprop its gradients for a microbatch.
+    """
+    
+
+
+if __name__ == "__main__":
+    # input_ids = torch.tensor([[42, 67, 76, 14, 26, 35, 20, 24, 50, 13],
+    #     [78, 14, 10, 54, 31, 72, 15, 95, 67,  6]])
+    # labels = torch.tensor([[67, 76, 14, 26, 35, 20, 24, 50, 13,  0],
+    #         [14, 10, 54, 31, 72, 15, 95, 67,  6,  0]])
+    
+    # device = torch.device("cuda")
+    # model = AutoModelForCausalLM.from_pretrained(
+    #     "Qwen/Qwen2.5-Math-1.5B",
+    #     torch_dtype=torch.bfloat16,
+    #     attn_implementation="flash_attention_2",
+    # )
+    # model.to(device)
+    # input_ids = input_ids.to(device)
+    # labels = labels.to(device)
+
+    # result = get_response_log_probs(model, input_ids, labels, return_token_entropy=True)
+    # print(result["log_probs"])
+    # print(result["token_entropy"])
+
+    tensor = torch.load("tensor.pt")
+    mask = torch.load("mask.pt")
+    print(tensor.shape)
+    print(mask.shape)
+    print(torch.sum(mask.float() * tensor, dim=0).shape)
+    # print(masked_normalize(tensor, mask, dim=0, normalize_constant=42.0))
     
     

@@ -38,6 +38,10 @@ def test_get_response_log_probs(
     numpy_snapshot.assert_match(output)
 
 def test_masked_normalize_dim0(numpy_snapshot, tensor, mask, normalize_constant):
+    torch.save(tensor, "tensor.pt")
+    torch.save(mask, 'mask.pt')
+    with open("normalize_constant.txt", "w") as f:
+        f.write(str(normalize_constant))
     output = masked_normalize(
         tensor=tensor,
         mask=mask,
