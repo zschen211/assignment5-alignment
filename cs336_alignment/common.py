@@ -116,6 +116,18 @@ def load_prompt_template(prompt_template_name: str) -> str:
     return prompt_template
 
 
+def load_train_set() -> List[dict]:
+    """
+    Load the GSM8K train dataset from JSONL format.
+    """
+    train_set_path = data_dir / "train.jsonl"
+
+    with open(train_set_path, "r") as f:
+        train_set = [json.loads(line) for line in f]
+
+    return train_set
+
+
 def load_test_set() -> List[dict]:
     """
     Load the GSM8K test dataset from JSONL format.
@@ -202,7 +214,7 @@ def get_response_log_probs(
     input_ids: torch.Tensor,
     labels: torch.Tensor,
     return_token_entropy: bool,
-) -> torch.Tensor:
+) -> dict[str, torch.Tensor]:
     """Get the conditional log-probs of the response given the prompt,
         and optionally the entropy of the next token predictions.
 
@@ -279,7 +291,7 @@ def sft_microbatch_train_step(
 ) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
     """Compute the policy gradient loss and backprop its gradients for a microbatch.
     """
-    batch_size, sequence_length = policy_log_probs.shape
+    batch_size, _ = policy_log_probs.shape
     microbatch_loss = -masked_normalize(
         policy_log_probs, 
         response_mask, dim=-1, 
