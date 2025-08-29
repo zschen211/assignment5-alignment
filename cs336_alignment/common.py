@@ -289,44 +289,16 @@ def sft_microbatch_train_step(
 
     return microbatch_loss, {}
 
-    
 
-
-if __name__ == "__main__":
-    # input_ids = torch.tensor([[42, 67, 76, 14, 26, 35, 20, 24, 50, 13],
-    #     [78, 14, 10, 54, 31, 72, 15, 95, 67,  6]])
-    # labels = torch.tensor([[67, 76, 14, 26, 35, 20, 24, 50, 13,  0],
-    #         [14, 10, 54, 31, 72, 15, 95, 67,  6,  0]])
-    
-    # device = torch.device("cuda")
-    # model = AutoModelForCausalLM.from_pretrained(
-    #     "Qwen/Qwen2.5-Math-1.5B",
-    #     torch_dtype=torch.bfloat16,
-    #     attn_implementation="flash_attention_2",
-    # )
-    # model.to(device)
-    # input_ids = input_ids.to(device)
-    # labels = labels.to(device)
-
-    # result = get_response_log_probs(model, input_ids, labels, return_token_entropy=True)
-    # print(result["log_probs"])
-    # print(result["token_entropy"])
-
-    # tensor = torch.load("tensor.pt")
-    # mask = torch.load("mask.pt")
-    # print(tensor.shape)
-    # print(mask.shape)
-    # print(torch.sum(mask.float() * tensor, dim=0).shape)
-    # print(masked_normalize(tensor, mask, dim=0, normalize_constant=42.0))
-
-    
-    policy_log_probs = torch.tensor([[ 1.9269,  1.4873,  0.9007, -2.1055, -0.7581,  1.0783,  0.8008,  1.6806,
-          0.3559, -0.6866],
-        [-0.4934,  0.2415, -0.2316,  0.0418, -0.2516,  0.8599, -0.3097, -0.3957,
-          0.8034, -0.6216]], requires_grad=True)
-    response_mask = torch.tensor([[ True,  True, False,  True, False,  True, False,  True,  True, False],
-        [ True,  True,  True,  True,  True, False,  True,  True, False,  True]])
-    gradient_accumulation_steps = 2
-    
-    loss, _ = sft_microbatch_train_step(policy_log_probs, response_mask, gradient_accumulation_steps)
-    print(loss.sum())
+def log_generation(
+    input_prompt: str,
+    resp_generated: str,
+    resp_ground_truth: str,
+    format_reward: float,
+    answer_reward: float,
+    avg_token_entropy: float,
+    avg_resp_length: float,
+    avg_resp_length_correct: float,
+    avg_resp_length_incorrect: float
+):
+    pass

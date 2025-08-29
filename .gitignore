@@ -1,2 +1,7 @@
 # Created by venv; see https://docs.python.org/3/library/venv.html
-*
+*.python-version
+*.pt
+__pycache__/
+.venv/
+.pytest_cache/
+.gitignore
